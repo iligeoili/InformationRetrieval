@@ -1,12 +1,10 @@
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
-import nltk
-from nltk.corpus import stopwords
 
 
-#nltk.download('stopwords')
-#greek_stop_words = stopwords.words('greek')
+
+
 
 # Φόρτωση των δεδομένων
 df = pd.read_csv('Greek_Parliament_Proceedings_1989_2020.csv')
@@ -17,7 +15,10 @@ grouped = df.groupby('member_name')
 
 def extract_keywords(speeches):
     # Συνδυασμός όλων των ομιλιών ενός βουλευτή σε ένα κείμενο
+
     combined_speeches = ' '.join(speeches)
+    if not combined_speeches.strip():
+        return []
 
     greek_stop_words = [
         'και', 'στο', 'στη', 'με', 'για', 'αλλά', 'ή', 'σαν', 'είναι',
@@ -30,7 +31,10 @@ def extract_keywords(speeches):
         'μη', 'μην', 'είτε', 'ούτε', 'αλλιώς', 'παρά', 'έτσι', 'όσο', 'σας', 'μου',
         'μας', 'σε', 'τι', 'οι', 'αυτά', 'ως', 'τι', 'τη', 'στις', 'αυτό', 'αυτή', 'θα', 'εμείς', 'οποία',
         'όμως', 'οποίο', 'πολύ', 'δηλαδή', 'κυρίες', 'κύριε', 'κατά', 'λοιπόν', 'κύριοι', 'αυτήν',
-        'διότι', 'γιατί', 'προς', 'πω', 'κάθε', 'πιο', 'γι', '000'
+        'διότι', 'γιατί', 'προς', 'πω', 'κάθε', 'πιο', 'γι', '000',
+         'εδώ', 'αυτές', 'εκεί',  'στους', 'οποίες', 'οποίοι', 'υπό', 'επί', 'όλα', 'όλοι',
+        'εις', 'όσον', 'περί', 'πώς', 'ώστε', 'ήδη', 'διά', 'πα', 'σο', 'αρα', 'παρά', 'εγώ', 'μόνο',
+        'όπου', 'τόσο', 'πάρα', 'δύο', 'πως', 'τότε', 'μα', 'κι', 'δισ', 'δις', 'αυτοί', 'εσείς', 'μέχρι', 'λόγω'
 
     ]
 
@@ -50,7 +54,10 @@ def extract_keywords(speeches):
 # Εξαγωγή και εκτύπωση των κυριότερων λέξεων-κλειδιών για κάθε βουλευτή
 for name, group in grouped:
     keywords = extract_keywords(group['speech'])
-    print(f"Κυριότερες λέξεις-κλειδιά για {name}:")
-    for keyword, score in keywords:
-        print(f"{keyword}: {score}")
-    print("\n")
+    if keywords:
+        print(f"Κυριότερες λέξεις-κλειδιά για τον βουλευτή {name}:")
+        for keyword, score in keywords:
+            print(f"{keyword}: {score}")
+        print("\n")
+    else:
+        print(f"No keywords found for {name}\n")
