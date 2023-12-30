@@ -9,15 +9,16 @@ from nltk.corpus import stopwords
 #greek_stop_words = stopwords.words('greek')
 
 # Φόρτωση των δεδομένων
-df = pd.read_csv('Greek_Parliament_Proceedings_1989_2020.csv')
+#df = pd.read_csv('Greek_Parliament_Proceedings_1989_2020.csv')
+df = pd.read_csv('C:/Users/alexa/Downloads/Greek_Parliament_Proceedings_1989_2020/Greek_Parliament_Proceedings_1989_2020.csv')
 
 # Ομαδοποίηση των ομιλιών ανά βουλευτή
 grouped = df.groupby('member_name')
 
 
-def extract_keywords(speeches):
+def extract_keywords(party):
     # Συνδυασμός όλων των ομιλιών ενός βουλευτή σε ένα κείμενο
-    combined_speeches = ' '.join(speeches)
+    combined_speeches = ' '.join(party)
 
     greek_stop_words = [
         'και', 'στο', 'στη', 'με', 'για', 'αλλά', 'ή', 'σαν', 'είναι',
@@ -49,7 +50,7 @@ def extract_keywords(speeches):
 
 # Εξαγωγή και εκτύπωση των κυριότερων λέξεων-κλειδιών για κάθε βουλευτή
 for name, group in grouped:
-    keywords = extract_keywords(group['speech'])
+    keywords = extract_keywords(group['political_party'])
     print(f"Κυριότερες λέξεις-κλειδιά για {name}:")
     for keyword, score in keywords:
         print(f"{keyword}: {score}")
