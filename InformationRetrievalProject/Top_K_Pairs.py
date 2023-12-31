@@ -1,7 +1,8 @@
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
-import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+
 
 greek_stop_words = [
     'και', 'στο', 'στη', 'με', 'για', 'αλλά', 'ή', 'σαν', 'είναι',
@@ -48,73 +49,36 @@ greek_stop_words = [
 # Φόρτωση των δεδομένων
 df = pd.read_csv('Greek_Parliament_Proceedings_1989_2020.csv')
 
-# Μετατροπή της στήλης ημερομηνίας σε datetime
-df['sitting_date'] = pd.to_datetime(df['sitting_date'], format='%d/%m/%Y')
+# Ομαδοποίηση των ομιλιών ανά βουλευτή
+grouped = df.groupby('member_name')['speech'].apply(' '.join)
 
-# Καθορισμός της δεκαετίας για κάθε ομιλία
-def assign_decade(date):
-    year = date.year
-    if 1980 <= year <= 1990:
-        return '1980-1990'
-    elif 1991 <= year <= 2000:
-        return '1991-2000'
-    elif 2001 <= year <= 2010:
-        return '2001-2010'
-    elif 2011 <= year <= 2022:
-        return '2011-2022'
-    else:
-        return 'Other'
-
-df['decade'] = df['sitting_date'].apply(assign_decade)
-
-# Συνάρτηση για τον καθαρισμό κειμένου
-def clean_text(text):
-    # Αφαιρούμε τα σημεία στίξης και τα αριθμητικά δεδομένα
-    text = re.sub(r'[^\w\s]', '', text)
-    text = re.sub(r'\d+', '', text)
-
-    # Διαχωρισμός των λέξεων και αφαίρεση των stop words
-    words = text.split()
-    words = [word for word in words if word not in greek_stop_words]
-
-    # Επιστροφή του καθαρισμένου κειμένου
-    return ' '.join(words)
-
-df['cleaned_speech'] = df['speech'].apply(clean_text)
-df = df[df['cleaned_speech'].str.strip() != '']
-
-# Ομαδοποίηση των ομιλιών ανά βουλευτή και δεκαετία
-grouped = df.groupby(['member_name', 'decade'])
+# Εξαγωγή διανυσμάτων χαρακτηριστικών με TF-IDF
+tfidf = TfidfVectorizer(stop_words=greek_stop_words)
+tfidf_matrix = tfidf.fit_transform(grouped)
 
 
+# Υπολογισμός ομοιότητας κοσινουσίου
+cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-def extract_keywords(speeches):
-    # Συνδυασμός όλων των ομιλιών ενός βουλευτή σε ένα κείμενο
-    combined_speeches = ' '.join(speeches)
-    if not combined_speeches.strip():
-        return []
+# Μετατροπή του πίνακα ομοιότητας σε DataFrame
+similarity_df = pd.DataFrame(cosine_sim, index=grouped.index, columns=grouped.index)
 
+# Εύρεση των top-k ζευγών με τον υψηλότερο βαθμό ομοιότητας
+k = 5  # Θέστε το k σύμφωνα με την επιθυμία σας
+top_pairs = {}
 
-    vectorizer = CountVectorizer(stop_words=greek_stop_words)
-    word_count_matrix = vectorizer.fit_transform([combined_speeches])
-    tfidf = TfidfTransformer(smooth_idf=False)
-    tfidf_matrix = tfidf.fit_transform(word_count_matrix)
-    feature_names = vectorizer.get_feature_names_out()
-    dense = tfidf_matrix.todense()
-    episode = dense[0].tolist()[0]
-    phrase_scores = [pair for pair in zip(range(0, len(episode)), episode) if pair[1] > 0]
-    sorted_phrase_scores = sorted(phrase_scores, key=lambda t: t[1] * -1)
-    top_keywords = [(feature_names[word_id], score) for (word_id, score) in sorted_phrase_scores][:10]
-    return top_keywords
+for i in similarity_df.columns:
+    # Ταξινόμηση των ομοιοτήτων σε φθίνουσα σειρά και αγνόηση της πρώτης τιμής (ομοιότητα με τον εαυτό του)
+    sorted_indices = np.argsort(similarity_df[i])[::-1][1:]
+    sorted_values = similarity_df[i][sorted_indices]
 
+    # Εύρεση των top-k ζευγών
+    top_pairs[i] = [(grouped.index[j], sorted_values[j]) for j in sorted_indices[:k]]
 
-# Εξαγωγή και εκτύπωση των κυριότερων λέξεων-κλειδιών για κάθε βουλευτή σε μια συγκεκριμένη δεκαετία
-for (name, decade), group in grouped:
-    keywords = extract_keywords(group['speech'])
-    if keywords:
-        print(f"Κυριότερες λέξεις-κλειδιά για τον βουλευτή {name} στη δεκαετία {decade}:")
-        for keyword, score in keywords:
-            print(f"{keyword}: {score}")
-        print("\n")
-    else:
-        print(f"No keywords found for {name} in {decade}\n")
+# Εμφάνιση των top-k ζευγών
+for member, pairs in top_pairs.items():
+    print(f"Top-k Similar Pairs for {member}:")
+    for pair in pairs:
+        print(f"{pair[0]} with similarity {pair[1]:.4f}")
+    print("\n")
+
