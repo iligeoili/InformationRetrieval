@@ -1,26 +1,28 @@
 import nltk
 from nltk.corpus import stopwords
-from sklearn.cluster import DBSCAN, KMeans
+from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction.text import TfidfVectorizer
 import re
 import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.decomposition import  TruncatedSVD
-from stanza.pipeline.external import spacy
+from sklearn.decomposition import TruncatedSVD
 import spacy
-# Φόρτωση των δεδομένων
+import multiprocessing
+
+i = 0
+# Load the data
 df = pd.read_csv('Greek_Parliament_Proceedings_1989_2020.csv')
-i = 0;○
-# Φόρτωση του Greek model
+
+# Load the Greek model
 nlp = spacy.load('el_core_news_sm')
 
-# Φόρτωση των stop words της ελληνικής γλώσσας μέσω του NLTK
+# Load the Greek stop words using NLTK
 nltk.download('stopwords')
 greek_stop_words = list(stopwords.words('greek'))
 
 def preprocess_text(document):
-    # Καθαρισμός του κειμένου
+    # Text cleaning
     document = re.sub(r'\W', ' ', str(document))
     document = re.sub(r'\s+[a-zA-Z]\s+', ' ', document)
     document = re.sub(r'\^[a-zA-Z]\s+', ' ', document)
@@ -30,37 +32,37 @@ def preprocess_text(document):
     global i
     i += 1
     print(i)
-    # Λεμματοποίηση
-    document = nlp(document)
-    document = [word.lemma_ for word in document if word.lemma_ not in greek_stop_words]
+    # Lemmatization
+    doc = nlp(document)
+    return ' '.join([word.lemma_ for word in doc if word.lemma_ not in greek_stop_words])
 
-    return ' '.join(document)
+# Parallel processing of text preprocessing
+def preprocess_documents(documents):
+    with multiprocessing.Pool() as pool:
+        return pool.map(preprocess_text, documents)
 
-# Εφαρμογή της προεπεξεργασίας στο DataFrame
-# Υποθέτουμε ότι το DataFrame σας ονομάζεται df και η στήλη με τα κείμενα ονομάζεται 'text'
-df['processed_text'] = df['speech'].apply(preprocess_text)
-# Φτιάξτε τον TfidfVectorizer με τον πίνακα των stop words
+# Apply preprocessing using multiprocessing
+df['processed_text'] = preprocess_documents(df['speech'].tolist())
+
+# TF-IDF Vectorization
 tfidf = TfidfVectorizer(stop_words=greek_stop_words)
-
-# Εφαρμόστε τον TF-IDF Vectorizer στα δεδομένα
 tfidf_matrix = tfidf.fit_transform(df['processed_text'])
-# Scaling the TF-IDF matrix (optional, but can improve results)
+
+# Optional: Scaling the TF-IDF matrix
 X_scaled = StandardScaler(with_mean=False).fit_transform(tfidf_matrix)
 
-## Number of clusters
+# K-Means Clustering
 k = 5
-
-# Applying K-Means Clustering
 kmeans = KMeans(n_clusters=k, random_state=42)
-clusters = kmeans.fit_predict(tfidf_matrix)  # Assuming you use the TF-IDF matrix here
+clusters = kmeans.fit_predict(tfidf_matrix)
 
-# Add cluster information to your DataFrame
+# Add cluster information to the DataFrame
 df['cluster'] = clusters
 df.to_csv('processed_speeches.csv', index=False)
+
 # Visualization with TruncatedSVD for dimensionality reduction
 svd = TruncatedSVD(n_components=2)
 tfidf_matrix_2d = svd.fit_transform(tfidf_matrix)
-
 
 # Create the scatter plot
 plt.scatter(tfidf_matrix_2d[:, 0], tfidf_matrix_2d[:, 1], c=df['cluster'], cmap='rainbow')
