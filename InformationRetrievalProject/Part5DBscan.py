@@ -11,7 +11,7 @@ from stanza.pipeline.external import spacy
 import spacy
 # Φόρτωση των δεδομένων
 df = pd.read_csv('Greek_Parliament_Proceedings_1989_2020.csv')
-i = 0;○
+i = 0
 # Φόρτωση του Greek model
 nlp = spacy.load('el_core_news_sm')
 
@@ -68,3 +68,53 @@ plt.xlabel('Dimension 1')
 plt.ylabel('Dimension 2')
 plt.title('TF-IDF 2D Representation of Speeches with K-Means Clusters')
 plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
