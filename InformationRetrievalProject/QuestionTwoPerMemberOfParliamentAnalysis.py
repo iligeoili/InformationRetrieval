@@ -5,7 +5,7 @@ from InformationRetrievalProject.GreekStopWords import greek_stop_words  # Impor
 
 
 # # Load the cleaned CSV file
-df_cleaned = pd.read_csv('Greek_Parliament_Proceedings_1989_2020_cleaned.csv')
+df_cleaned = pd.read_csv('Greek_Parliament_Proceedings_1989_2020_refined_cleaned.csv')
 
 # Group the DataFrame by 'member_name'
 grouped = df_cleaned.groupby('member_name')

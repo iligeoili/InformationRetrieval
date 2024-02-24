@@ -7,7 +7,7 @@ import numpy as np
 
 
 # Φόρτωση των δεδομένων
-df = pd.read_csv('Greek_Parliament_Proceedings_1989_2020_cleaned.csv')
+df = pd.read_csv('Greek_Parliament_Proceedings_1989_2020_refined_cleaned.csv')
 
 # Ομαδοποίηση των ομιλιών ανά βουλευτή
 grouped = df.groupby('member_name')['cleaned_speech'].apply(' '.join)
