@@ -62,3 +62,36 @@ for (name, decade), group in grouped:
         print("\n")
     else:
         print(f"No keywords found for {name} in {decade}\n")
+
+# from wordcloud import WordCloud
+# import matplotlib.pyplot as plt
+# import os
+
+# # Define the folder name
+# folder_name = "in_time_analysis_per_member"
+
+# # Create the folder if it doesn't exist
+# if not os.path.exists(folder_name):
+#     os.makedirs(folder_name)
+
+# # Εξαγωγή και εκτύπωση των κυριότερων λέξεων-κλειδιών για κάθε βουλευτή σε μια συγκεκριμένη δεκαετία
+# for (name, decade), group in grouped:
+#     keywords = extract_keywords(group['cleaned_speech'])
+#     if keywords:
+#         print(f"Κυριότερες λέξεις-κλειδιά για τον βουλευτή {name} στη δεκαετία {decade}:")
+#         for keyword, score in keywords:
+#             print(f"{keyword}: {score}")
+#         print("\n")
+#         wordcloud_dict = {keyword: int(score * 1000) for keyword, score in keywords}
+#         wordcloud = WordCloud(width=800, height=400, background_color ='white').generate_from_frequencies(wordcloud_dict)
+#         plt.figure(figsize=(10, 5))
+#         plt.imshow(wordcloud, interpolation='bilinear')
+#         plt.title(f"Word Cloud for {name} in {decade}")
+#         plt.axis('off')
+#          # plt.tight_layout()  # Adjust layout to prevent overlap
+#         filename = f'{folder_name}/{name}_plot.png'
+    
+#         plt.savefig(filename)
+
+#     else:
+#         print(f"No keywords found for {name} in {decade}\n")
