@@ -31,13 +31,13 @@ for i in similarity_df.columns:
     # Ταξινόμηση των ομοιοτήτων σε φθίνουσα σειρά και αγνόηση της πρώτης τιμής (ομοιότητα με τον εαυτό του)
     sorted_indices = np.argsort(similarity_df[i])[::-1][1:]
     sorted_values = similarity_df[i][sorted_indices]
-    print(i)
+
     # Εύρεση των top-k ζευγών
     top_pairs[i] = [(grouped.index[j], sorted_values[j]) for j in sorted_indices[:k]]
 
 # Εμφάνιση των top-k ζευγών
 for member, pairs in top_pairs.items():
-    print(f"Top-k Similar Pairs for {member}:")
+    print("Top-k Similar Pairs for {member}:")
     for pair in pairs:
         print(f"{pair[0]} with similarity {pair[1]:.4f}")
     print("\n")
