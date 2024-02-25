@@ -10,7 +10,7 @@ tfidf = TfidfVectorizer()
 tfidf_matrix = tfidf.fit_transform(df['cleaned_speech'])
 
 # Εφαρμογή LSI
-n_components = 10  # Ο αριθμός των θεματικών περιοχών που θέλετε να εντοπίσετε
+n_components = 5  # Ο αριθμός των θεματικών περιοχών που θέλετε να εντοπίσετε
 lsi = TruncatedSVD(n_components=n_components)
 lsi_matrix = lsi.fit_transform(tfidf_matrix)
 
