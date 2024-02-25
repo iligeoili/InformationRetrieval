@@ -2,7 +2,7 @@ import pandas as pd
 import spacy
 from InformationRetrievalProject.GreekStopWords import greek_stop_words
 import re
-
+flag = 0
 # Load the Greek language model
 nlp = spacy.load("el_core_news_sm")
 
@@ -12,6 +12,9 @@ df_cleaned = pd.read_csv('Greek_Parliament_Proceedings_1989_2020_refined_cleaned
 # Function to remove verbs from the cleaned text
 def remove_verbs(text):
     doc = nlp(text)
+    global flag
+    flag +=1
+    print("in remove verbs "+ str(flag))
     # Remove verbs from the text
     filtered_tokens = [token.text for token in doc if token.pos_ != 'VERB']
     return " ".join(filtered_tokens)
@@ -21,6 +24,9 @@ df_cleaned['cleaned_speech'] = df_cleaned['cleaned_speech'].apply(remove_verbs)
 
 # Function to refine the cleaned text further
 def refine_cleaned_text(text):
+    global flag
+    flag += 1
+    print("in refined_cleaned_text " + str(flag))
     # Normalize case for a case-insensitive match and split the text into tokens
     tokens = text.lower().split()
     # Remove any newly added stop words, considering case sensitivity
